@@ -120,7 +120,8 @@ def main():
     with open("reports/trivy_console.log", "w") as f:
         f.write(trivy_out or "")
         f.write(trivy_err or "")
-
+    if trivy_code != 0:
+        console.print(f"[red]❌ Trivy failed: {trivy_err}[/red]")
 
     # --- Summarize results ---
     bandit_issues = summarize_bandit()
