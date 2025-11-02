@@ -53,7 +53,7 @@ SecurePipe/
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/SecurePipe.git
+git clone https://github.com/Swapnil-Chatterjee/SecurePipe.git
 cd SecurePipe
 ```
 
