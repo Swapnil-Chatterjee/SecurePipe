@@ -26,6 +26,14 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt || pip install bandit checkov rich
 
+      - name: 🔍 Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.43.0_Linux-64bit.tar.gz
+          tar zxvf trivy_0.43.0_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
+
       - name: 🧪 Run SecurePipe Scan
         run: |
           source venv/bin/activate

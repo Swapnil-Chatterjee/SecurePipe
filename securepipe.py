@@ -32,6 +32,11 @@ def run_checkov(target_dir):
     cmd = f"checkov -d {target_dir} -o json --output-file-path reports"
     return run_command(cmd)
 
+def run_trivy(target_dir):
+    console.print("[bold blue]🛡️ Running Trivy (Container / Dependency scan)...[/bold blue]")
+    os.makedirs("reports", exist_ok=True)
+    cmd = f"trivy fs --skip-dirs venv --scanners vuln --format json --output reports/trivy_report.json {target_dir}"
+    return run_command(cmd)
 
 def summarize_bandit():
     """Read and summarize Bandit results"""
@@ -71,6 +76,22 @@ def summarize_checkov():
         console.print(f"[red]Error parsing Checkov report: {e}[/red]")
         return {}
 
+def summarize_trivy():
+    try:
+        report_path = "reports/trivy_report.json"
+        if not os.path.exists(report_path):
+            return 0
+        with open(report_path, "r") as f:
+            data = json.load(f)
+        vuln_count = 0
+        for result in data.get("Results", []):
+            vulns = result.get("Vulnerabilities", [])
+            vuln_count += len(vulns)
+        
+        return vuln_count
+    except Exception:
+        return 0
+
 def main():
     parser = argparse.ArgumentParser(description="SecurePipe - Lightweight DevSecOps Security Scanner")
     parser.add_argument("--repo", required=True, help="Path to local repo directory")
@@ -94,10 +115,17 @@ def main():
     if checkov_code != 0:
         console.print(f"[red]❌ Checkov failed: {checkov_err}[/red]")
 
+    # --- Run Trivy ---
+    trivy_out, trivy_err, trivy_code = run_trivy(args.repo)
+    with open("reports/trivy_console.log", "w") as f:
+        f.write(trivy_out or "")
+        f.write(trivy_err or "")
+
+
     # --- Summarize results ---
     bandit_issues = summarize_bandit()
     checkov_issues = summarize_checkov()
-
+    trivy_issues = summarize_trivy()
     
     # --- Print summary table ---
     table = Table(title="🔒 SecurePipe Scan Summary", show_header=True, header_style="bold magenta")
@@ -108,11 +136,13 @@ def main():
     table.add_row("Bandit", str(bandit_issues), "reports/bandit_report.json")
     # table.add_row("Checkov", str(checkov_issues), "reports/results_json.json")
 
-    if not checkov_issues:
-        console.print("[yellow]⚠️  No IaC files detected for Checkov. Add Terraform, YAML, or Docker files to scan.[/yellow]")
-    else:
+    if checkov_issues:
         for check_type, failed_count in checkov_issues.items():
             table.add_row(f"Checkov ({check_type})", str(failed_count), "reports/results_json.json")
+    else:
+        table.add_row("Checkov", "0", "reports/results_json.json")
+
+    table.add_row("Trivy", str(trivy_issues), "reports/trivy_report.json")
 
     console.print("\n")
     console.print(table)
