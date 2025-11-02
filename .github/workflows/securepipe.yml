@@ -28,11 +28,10 @@ jobs:
 
       - name: 🔍 Install Trivy
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.43.0_Linux-64bit.tar.gz
-          tar zxvf trivy_0.43.0_Linux-64bit.tar.gz
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.67.2/trivy_0.67.2_Linux-64bit.tar.gz
+          tar zxvf trivy_0.67.2_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
+          trivy --version
 
       - name: 🧪 Run SecurePipe Scan
         run: |
