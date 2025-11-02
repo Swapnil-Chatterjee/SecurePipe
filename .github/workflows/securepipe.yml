@@ -1,0 +1,39 @@
+name: 🔒 SecurePipe Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧭 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt || pip install bandit checkov rich
+
+      - name: 🧪 Run SecurePipe Scan
+        run: |
+          source venv/bin/activate
+          mkdir -p reports
+          python securepipe.py --repo .
+
+      - name: 📤 Upload Scan Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: securepipe-reports
+          path: reports/
