@@ -1,0 +1,42 @@
+# ----------------------------
+# Python virtual environment
+# ----------------------------
+venv/
+.env/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# ----------------------------
+# IDE / Editor
+# ----------------------------
+.vscode/
+.idea/
+
+# ----------------------------
+# Logs and Reports
+# ----------------------------
+reports/
+*.log
+
+# ----------------------------
+# Dependency / Build artifacts
+# ----------------------------
+dist/
+build/
+*.egg-info/
+
+# ----------------------------
+# OS generated
+# ----------------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------------
+# Security scan cache
+# ----------------------------
+.bandit/
+.checkov/

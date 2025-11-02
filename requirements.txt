@@ -1,0 +1,6 @@
+bandit
+checkov
+semgrep
+trivy
+rich          # for colorful CLI output
+tabulate      # for pretty tables
