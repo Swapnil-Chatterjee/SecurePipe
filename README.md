@@ -82,10 +82,45 @@ python -m venv venv
 ```bash
 pip install -r requirements.txt
 ```
-
 ---
 
-### 4️⃣ Run the Scanner
+### 4️⃣ Install Trivy (for local testing)
+
+Trivy is a powerful open-source vulnerability scanner for containers, filesystems, and IaC.
+SecurePipe uses Trivy to detect OS packages, dependencies, and misconfigurations.
+
+**🪟 Windows**
+- Using PowerShell (Run as Administrator)
+    ```bash
+    iwr -useb https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.ps1 | iex
+    ```
+
+**🐧 Linux / macOS**
+- **Using wget (Linux)**
+    ```bash
+    wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.49.1_Linux-64bit.tar.gz
+    tar zxvf trivy_0.49.1_Linux-64bit.tar.gz
+    sudo mv trivy /usr/local/bin/
+    ```
+
+- **Using Homebrew (macOS)**
+    ```bash
+    brew install aquasecurity/trivy/trivy
+    ```
+
+**🧩 Verify Installation**
+```bash
+trivy --version
+```
+
+Expected output:
+```bash
+Version: 0.49.1
+Vulnerability DB: Updated
+```
+---
+
+### 5️⃣ Run the Scanner
 
 ```bash
 python securepipe.py --repo ../target_repo
@@ -108,6 +143,7 @@ Reports will be saved in the `reports/` directory.
 │ Bandit               │     12       │ reports/bandit_report.json  │
 │ Checkov (terraform)  │      4       │ reports/results_json.json   │
 │ Checkov (dockerfile) │      1       │ reports/results_json.json   │
+│        Trivy         │      2       │ reports/trivy_report.json   │
 └──────────────────────┴──────────────┴─────────────────────────────┘
 
 ✅ Scanning complete! Reports saved in ./reports
