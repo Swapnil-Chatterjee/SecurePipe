@@ -15,10 +15,11 @@ def run_command(command):
     except Exception as e:
         return "", str(e), 1
 
+# ---------------- Scanner runners ----------------
 
 def run_bandit(target_dir):
     """Run Bandit security scanner"""
-    console.print("[bold blue]🔍 Running Bandit (Python security scan)...[/bold blue]")
+    console.print("[bold blue]Running Bandit (Python security scan)...[/bold blue]")
     os.makedirs("reports", exist_ok=True)
     cmd = f"python -m bandit -r {target_dir} -f json -o reports/bandit_report.json"
     return run_command(cmd)
@@ -26,17 +27,19 @@ def run_bandit(target_dir):
 
 def run_checkov(target_dir):
     """Run Checkov IaC & config scanner"""
-    console.print("[bold blue]☁️  Running Checkov (IaC / config scan)...[/bold blue]")
+    console.print("[bold blue]Running Checkov (IaC / config scan)...[/bold blue]")
     os.makedirs("reports", exist_ok=True)
     # Correct usage of Checkov output mapping
     cmd = f"checkov -d {target_dir} -o json --output-file-path reports"
     return run_command(cmd)
 
 def run_trivy(target_dir):
-    console.print("[bold blue]🛡️ Running Trivy (Container / Dependency scan)...[/bold blue]")
+    console.print("[bold blue]Running Trivy (Container / Dependency scan)...[/bold blue]")
     os.makedirs("reports", exist_ok=True)
     cmd = f"trivy fs --skip-dirs venv --scanners vuln --format json --output reports/trivy_report.json {target_dir}"
     return run_command(cmd)
+
+# ---------------- Summarizers ----------------
 
 def summarize_bandit():
     """Read and summarize Bandit results"""
@@ -92,36 +95,37 @@ def summarize_trivy():
     except Exception:
         return 0
 
-def main():
-    parser = argparse.ArgumentParser(description="SecurePipe - Lightweight DevSecOps Security Scanner")
-    parser.add_argument("--repo", required=True, help="Path to local repo directory")
-    args = parser.parse_args()
+def run_securepipe_scan(target_dir="."):
+    """
+    Run all scanners against target_dir, save console logs and return structured summary.
+    Returns a dict: { 'bandit': int, 'checkov': dict, 'trivy': int }
+    """
 
     os.makedirs("reports", exist_ok=True)
 
     # --- Run Bandit ---
-    bandit_out, bandit_err, bandit_code = run_bandit(args.repo)
+    bandit_out, bandit_err, bandit_code = run_bandit(target_dir)
     with open("reports/bandit_console.log", "w") as f:
         f.write(bandit_out or "")
         f.write(bandit_err or "")
     if bandit_code != 0:
-        console.print(f"[red]❌ Bandit failed: {bandit_err}[/red]")
+        console.print(f"[red]Bandit failed: {bandit_err}[/red]")
 
     # --- Run Checkov ---
-    checkov_out, checkov_err, checkov_code = run_checkov(args.repo)
+    checkov_out, checkov_err, checkov_code = run_checkov(target_dir)
     with open("reports/checkov_console.log", "w") as f:
         f.write(checkov_out or "")
         f.write(checkov_err or "")
     if checkov_code != 0:
-        console.print(f"[red]❌ Checkov failed: {checkov_err}[/red]")
+        console.print(f"[red]Checkov failed: {checkov_err}[/red]")
 
     # --- Run Trivy ---
-    trivy_out, trivy_err, trivy_code = run_trivy(args.repo)
+    trivy_out, trivy_err, trivy_code = run_trivy(target_dir)
     with open("reports/trivy_console.log", "w") as f:
         f.write(trivy_out or "")
         f.write(trivy_err or "")
     if trivy_code != 0:
-        console.print(f"[red]❌ Trivy failed: {trivy_err}[/red]")
+        console.print(f"[red]Trivy failed: {trivy_err}[/red]")
 
     # --- Summarize results ---
     bandit_issues = summarize_bandit()
@@ -129,7 +133,7 @@ def main():
     trivy_issues = summarize_trivy()
     
     # --- Print summary table ---
-    table = Table(title="🔒 SecurePipe Scan Summary", show_header=True, header_style="bold magenta")
+    table = Table(title="SecurePipe Scan Summary", show_header=True, header_style="bold magenta")
     table.add_column("Tool", justify="center")
     table.add_column("Issues Found", justify="center")
     table.add_column("Report Path", justify="center")
@@ -147,8 +151,20 @@ def main():
 
     console.print("\n")
     console.print(table)
-    console.print("\n[green]✅ Scanning complete! Reports saved in ./reports[/green]")
+    console.print("\n[green]Scanning complete! Reports saved in ./reports[/green]")
 
+    # Return structured summary for programmatic use
+    return {
+        "bandit": bandit_issues,
+        "checkov": checkov_issues,
+        "trivy": trivy_issues
+    }
+
+def cli_main():
+    parser = argparse.ArgumentParser(description="SecurePipe - Lightweight DevSecOps Security Scanner")
+    parser.add_argument("--repo", required=True, help="Path to local repo directory")
+    args = parser.parse_args()
+    run_securepipe_scan(args.repo)
 
 if __name__ == "__main__":
-    main()
+    cli_main()

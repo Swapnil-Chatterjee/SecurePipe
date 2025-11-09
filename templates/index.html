@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecurePipe Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center py-10">
+
+  <h1 class="text-4xl font-bold mb-6 text-cyan-400">🔒 SecurePipe Dashboard</h1>
+
+  <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-11/12 md:w-2/3">
+    <form id="scan-form" class="flex flex-col gap-4">
+      <label class="text-lg">Repository Path:</label>
+      <input type="text" id="repo-path" placeholder="/path/to/your/repo"
+             class="p-3 rounded bg-gray-700 border border-gray-600 text-white"
+             required>
+
+      <button type="submit"
+              class="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded-lg font-semibold">
+        Run Scan
+      </button>
+    </form>
+
+    <div id="scan-result" class="mt-6 hidden">
+      <h2 class="text-xl font-bold mb-2 text-green-400">Scan Results</h2>
+      <pre id="output"
+           class="bg-gray-700 p-4 rounded text-sm overflow-x-auto whitespace-pre-wrap"></pre>
+    </div>
+
+    <!-- <div class="mt-8">
+      <h2 class="text-xl font-bold mb-2 text-yellow-400">Available Reports</h2>
+      <ul id="report-list" class="list-disc pl-6 space-y-1 text-gray-300"></ul>
+    </div> -->
+  </div>
+
+  <script>
+    // async function fetchReports() {
+    //   const res = await fetch('/reports');
+    //   const data = await res.json();
+    //   const list = document.getElementById('report-list');
+    //   list.innerHTML = '';
+    //   if (data.reports.length === 0) {
+    //     list.innerHTML = '<li>No reports available yet.</li>';
+    //   } else {
+    //     data.reports.forEach(file => {
+    //       list.innerHTML += `<li><a href="/reports/${file}" class="text-cyan-400 hover:underline">${file}</a></li>`;
+    //     });
+    //   }
+    // }
+
+    document.getElementById('scan-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const repoPath = document.getElementById('repo-path').value.trim();
+      if (!repoPath) return alert('Please enter a repository path');
+
+      document.getElementById('scan-result').classList.remove('hidden');
+      const outputEl = document.getElementById('output');
+      outputEl.textContent = '⏳ Running scan, please wait...';
+
+      const res = await fetch(`/scan/${encodeURIComponent(repoPath)}`);
+      const data = await res.json();
+
+      outputEl.textContent =
+        (data.stdout || '') + (data.stderr ? `\n\nErrors:\n${data.stderr}` : '');
+
+    //   fetchReports();
+    });
+
+    // fetchReports();
+  </script>
+</body>
+</html>
